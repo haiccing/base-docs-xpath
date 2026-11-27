@@ -20,10 +20,12 @@ The tests of pkgm-base-check, a section per file, each test by its name.
 - a layer's structure: a structure type there is, with what it needs
 - explicit, always: a streaming layer declares its structure; without it the layer is a folder: said
 - the names a package lays into its layers: a URI's, or hidden and one of those there are
+- the avro layer: laid in by the runtime package alone; any other package bringing it, or a file into it: said
 
 ## `package.test.js`
 
 - a package well formed: a folder for every test, a test of its own, whatever its name: none
+- a test of its own that runs where the package is deployed, <name>-in-situ: in the in-situ set, not the others
 - it tests what it provides: protocols, a program, hooks, a list, and no test of its own
 - every test has its folder: a generic test named in a set without one
 - every package has a test of its own: where nothing is specific, a dummy that says so

@@ -3,6 +3,9 @@
 import { segmented, joined } from 'mycelium-uri'
 import { LAYER, TOP, keyword, parse, MENU, INCLUDED } from '../../internal/info/index.js'
 
+// The type of what is attached: a page, its text, one of AVRO's own.
+export const PAGE = 'avro/string'
+
 // A page's text without its menus: what it says, its keywords listed apart.
 const said = text => {
   const lines = String(text).replace(/\r/g, '').split('\n')
@@ -53,7 +56,7 @@ async function drawn (exec, index, k, context, packages = {}) {
     const r = parse(text)
     const page = c.section ? r.sections.find(s => s.title === c.section)?.text ?? '' : said(text)
     const below = c.below.map(b => ({ keyword: name(b), oneliner: index[b]?.[0]?.oneliner ?? packages[b]?.oneliner ?? '', choices: index[b]?.length ?? (packages[b] ? 1 : 0) }))
-    out.push({ title: c.section ?? r.title, oneliner: c.oneliner, page, below, ...(context ? { context } : {}), packages: context ? [context] : packageOf(c.page), ...(c.see ? { see: c.see } : {}), ...(c.generated ? { generated: true } : {}) })
+    out.push({ title: c.section ?? r.title, oneliner: c.oneliner, page, at: `${LAYER}/${c.page}`, below, ...(context ? { context } : {}), packages: context ? [context] : packageOf(c.page), ...(c.see ? { see: c.see } : {}), ...(c.generated ? { generated: true } : {}) })
   }
   return out
 }
@@ -72,12 +75,22 @@ export async function get (exec, { uri = ['.'], args = [] }) {
   if (index === null) throw new Error('no info extracted in this mrepo yet (info/extract)')
   const packages = (await doc(exec, 'packages.json')) ?? {}
   const of = async pkg => (await doc(exec, `packages/${pkg}/index.json`)) ?? {}
+  // What is said: the keyword asked for and what it is, then the keywords
+  // below it, each as it is asked, with what it is: what to ask next;
+  // several choices: each apart, under its keyword. The page itself is
+  // the product: attached, a text, as it is written, not also said.
   const answer = (keyword, choices, context = null) => {
-    exec.log('verbose', 'found', { keyword, context, choices: choices.length, below: choices.reduce((n, c) => n + c.below.length, 0) })
-    return { keyword, ...(context ? { context } : {}), choices }
+    exec.log('verbose', 'found', `${keyword}${context ? `, in ${context}` : ''}: ${choices.length} ${choices.length === 1 ? 'choice' : 'choices'}, ${choices.reduce((n, c) => n + c.below.length, 0)} keywords below.`)
+    const one = c => [
+      ...(c.see ? [`See: ${c.see}`] : []),
+      ...(c.below.length ? ['Below it:', ...c.below.map(b => `- ${b.keyword}: ${b.oneliner}${b.choices > 1 ? ` (${b.choices} choices)` : ''}`)] : [])
+    ]
+    const head = choices.length === 1 ? `${keyword}: ${choices[0].oneliner || choices[0].title}` : `${keyword}: ${choices.length} choices, each apart.`
+    const body = choices.length === 1 ? one(choices[0]) : choices.flatMap((c, n) => [...(n ? [''] : []), `== ${c.keyword ?? keyword}${c.context ? ` (${c.context})` : ''}: ${c.oneliner || c.title}`, ...one(c)])
+    return { message: [head, ...body].join('\n'), attachments: choices.map(c => ({ name: c.title || keyword, type: PAGE, value: c.page })) }
   }
   const { context, rest } = index[k] ? { context: null, rest: k } : contextOf(k, packages)
-  exec.log('debug', 'asked', { keyword: k, context, rest })
+  exec.log('debug', 'asked', `Asked: ${k}${context ? `, in ${context}, ${rest || 'its top'}` : ''}.`)
   // the mrepo's own keywords: the top, the organisations, what is made here
   if (index[k]) return answer(k, await drawn(exec, index, k, null, packages))
   // in a package's context: its own index only

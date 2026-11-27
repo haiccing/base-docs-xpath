@@ -154,8 +154,8 @@ done/*                                  its records, from the latest back
 done/*[@offset=1795400000002]           one record: its address
 done/*[@offset>1795400000002]           what arrived after a pointer
 done/*[@offset<1795400000002]           from there back
-done/*[value/value/protocol='crud']     by its data
-done/*[@offset=1795400000002]/value/value/output    a field of one
+done/*[value/form/protocol='crud']     by its data
+done/*[@offset=1795400000002]/value/returned/message    a field of one
 ```
 
 - **The offset is an index**: its digits say the folder a record is in.
@@ -206,13 +206,14 @@ is never an object.
 - **The schema says which, where there is one.** In AVRO a field of a
   primitive type (a string, a number, a boolean, a timestamp, an enum,
   or one of those that may be null) is an attribute; a record, a map,
-  an array, or bytes that carry the next level is a node. This is known
+  an array is a node; bytes that carry a value of another type (an
+  attachment's content) are a leaf, their value read by that type. This is known
   before any data is read.
 - **A record's own fields are attributes, its data is below `value`.**
-  The base record (`mycelium-value-avro`, `record.json`) gives
-  `@topic`, `@key`, `@offset`, `@timestamp`; and the nodes `headers`
-  and `value`: `*[@offset>1795312345678]`,
-  `*[@offset=1795312345678]/value/value/output`.
+  The record (`haiccing/base-package-runtime`, `types/record.avsc`)
+  gives `@topic`, `@key`, `@offset`, `@timestamp`; and the nodes
+  `headers` and `value`: `*[@offset>1795312345678]`,
+  `*[@offset=1795312345678]/value/returned/message`.
 - **JSON follows the same rule.** Without a schema a leaf is found from
   the value at hand: a key holding a value that is no object. JSON
   documents are brought in line with AVRO's schemas, so that what is an
