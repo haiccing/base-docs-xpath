@@ -234,9 +234,10 @@ is never an object.
 - **The routing URI is a query too**: `haicc <query> <command>` executes
   the command at each position the query selects, and sends it on with
   what is left of the URI where it reaches a shortcut.
-- **What a request answers is the action's own**, any data: what a URI
-  resolves to is always an array of nodes; a command run at several
-  nodes answers with what each gave, listed.
+- **What a request answers is the action's own**: what it says, and its
+  data attached, each attachment typed (`base-docs-avro`, "The
+  cascade"); what a URI resolves to is always an array of nodes; a
+  command run at several nodes answers with what each gave, listed.
 
 ## Shortcuts
 
@@ -248,7 +249,7 @@ is never an object.
   query from that node as its root. A filter on the node it stops at
   goes with it.
 - **Every mrepo has a unique URI**, a path, `<namespace>/<name>`:
-  `local/host`, a swarm's node `swarm-1/node-1`, a how-to's mrepo
+  `local/host`, a swarm's peer `swarm-1/peer-1`, a how-to's mrepo
   `haiccing/base-package-crud/howto/query/boot`. A shortcut names the mrepo it leads to
   by it.
 
